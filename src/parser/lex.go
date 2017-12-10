@@ -10,7 +10,7 @@ import (
 type TokenType int64
 
 const (
-	TokenError TokenType = iota << 1
+	TokenError TokenType = 1 << iota
 	TokenBraceOpen
 	TokenBraceClose
 	TokenParensOpen
@@ -41,12 +41,14 @@ type Token struct {
 	Typ TokenType
 	Lit []rune
 	Pos int
-	End int
 	Err error
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("Token(%d,%s)", t.Typ, t.Lit)
+	if t.Typ == TokenError {
+		return fmt.Sprintf("TokenError(%s)", t.Err)
+	}
+	return fmt.Sprintf("Token(%d,%d,%s,@%d)", t.Typ, TokenError, string(t.Lit), t.Pos)
 }
 
 type Lexer struct {
@@ -64,10 +66,7 @@ func (l *Lexer) Tokens() <-chan Token {
 	tokens := make(chan Token)
 	go func() {
 		for {
-			start := l.pos
-			token := l.next()
-			token.Pos = start
-			token.End = l.pos
+			token := l.nextIgnoreSpace()
 			if token.Err != nil {
 				if token.Err != io.EOF {
 					tokens <- token
@@ -112,12 +111,21 @@ func (l *Lexer) consumeWhitespace() error {
 	}
 }
 
-func (l *Lexer) next() Token {
+func (l *Lexer) nextIgnoreSpace() Token {
 	err := l.consumeWhitespace()
 	if err != nil {
 		return l.err(err)
 	}
+	pos := l.pos
+	t := l.next()
+	t.Pos = pos
+	if t.Typ == TokenString {
+		t.Pos++
+	}
+	return t
+}
 
+func (l *Lexer) next() Token {
 	r, err := l.read()
 	if err != nil {
 		return l.err(err)
@@ -161,14 +169,28 @@ func (l *Lexer) emitString() Token {
 	t := l.emitUntil(func(b rune) bool {
 		return b == '"'
 	})
+	if t.Err != nil {
+		return t
+	}
 	t.Typ = TokenString
 	return t
 }
 
 func (l *Lexer) emitAlphaNum() Token {
 	t := l.emitUntil(func(b rune) bool {
-		return unicode.IsSpace(b)
+		isAlphaNum := ('0' <= b && b <= '9') ||
+			('a' <= b && b <= 'z') ||
+			('A' <= b && b <= 'Z') ||
+			(b == '_')
+		return !isAlphaNum
 	})
+	if t.Err != nil {
+		return t
+	}
+	err := l.unread()
+	if err != nil {
+		return l.err(err)
+	}
 	if typ, ok := keywords[string(t.Lit)]; ok {
 		t.Typ = typ
 	} else {
