@@ -1,3 +1,3 @@
-func foo() int {
-    return 11;
+func foo(int x, int y) int {
+    return x + y;
 }

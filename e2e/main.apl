@@ -2,8 +2,7 @@ import lib
 import lib2
 
 func foo() int {
-    int i = 5;
-    return i; 
+    return 5; 
 }
 
 func bar(int x) {

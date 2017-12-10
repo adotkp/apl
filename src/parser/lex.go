@@ -1,4 +1,4 @@
-package lex
+package parser
 
 import (
 	"errors"
@@ -17,38 +17,70 @@ const (
 	TokenParensClose
 	TokenComma
 	TokenSemicolon
+	TokenAssign
 	TokenString
 	TokenNumber
 	TokenIf
 	TokenElse
 	TokenFunc
+	TokenTyp
 	TokenImport
+	TokenReturn
 	TokenText
 )
 
-var keywords map[string]TokenType
+func (t TokenType) String() string {
+	return tokens[t]
+}
+
+var (
+	keywords map[string]TokenType
+	tokens   map[TokenType]string
+)
 
 func init() {
 	keywords = map[string]TokenType{
 		"if":     TokenIf,
 		"else":   TokenElse,
 		"func":   TokenFunc,
+		"type":   TokenTyp,
 		"import": TokenImport,
+		"return": TokenReturn,
+	}
+	tokens = map[TokenType]string{
+		TokenError:       "TokenError",
+		TokenBraceOpen:   "TokenBraceOpen",
+		TokenBraceClose:  "TokenBraceClose",
+		TokenParensOpen:  "TokenParensOpen",
+		TokenParensClose: "TokenParensClose",
+		TokenComma:       "TokenComma",
+		TokenSemicolon:   "TokenSemicolon",
+		TokenAssign:      "TokenAssign",
+		TokenString:      "TokenString",
+		TokenNumber:      "TokenNumber",
+		TokenIf:          "TokenIf",
+		TokenElse:        "TokenElse",
+		TokenFunc:        "TokenFunc",
+		TokenTyp:         "TokenType",
+		TokenImport:      "TokenImport",
+		TokenReturn:      "TokenReturn",
+		TokenText:        "TokenText",
 	}
 }
 
 type Token struct {
-	Typ TokenType
-	Lit []rune
-	Pos int
-	Err error
+	Typ       TokenType
+	Lit       []rune
+	Pos       int
+	Err       error
+	IsKeyword bool
 }
 
 func (t Token) String() string {
 	if t.Typ == TokenError {
 		return fmt.Sprintf("TokenError(%s)", t.Err)
 	}
-	return fmt.Sprintf("Token(%d,%d,%s,@%d)", t.Typ, TokenError, string(t.Lit), t.Pos)
+	return fmt.Sprintf("Token(%v,%d,%s,@%d)", t.Typ, TokenError, string(t.Lit), t.Pos)
 }
 
 type Lexer struct {
@@ -143,6 +175,8 @@ func (l *Lexer) next() Token {
 		return l.emitSymbol(r, TokenSemicolon)
 	case ',':
 		return l.emitSymbol(r, TokenComma)
+	case '=':
+		return l.emitSymbol(r, TokenAssign)
 	case '"':
 		return l.emitString()
 	default:
@@ -193,6 +227,7 @@ func (l *Lexer) emitAlphaNum() Token {
 	}
 	if typ, ok := keywords[string(t.Lit)]; ok {
 		t.Typ = typ
+		t.IsKeyword = true
 	} else {
 		t.Typ = TokenText
 	}
