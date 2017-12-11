@@ -7,12 +7,16 @@ import (
 )
 
 type Statement interface {
-	Exec() error
+	TypeCheck() error
 	String() string
 }
 
 type Import struct {
 	Name string
+}
+
+func (i *Import) TypeCheck() error {
+	return nil
 }
 
 func (i *Import) String() string {
@@ -42,4 +46,15 @@ func (f *FnCall) Exec() error {
 
 func (f *FnCall) String() string {
 	return fmt.Sprintf("FnCall(%s:%v)", f.Nam, f.Params)
+}
+
+func (f *FnCall) TypeCheck(ctx types.Context) error {
+	typ, err := ctx.Get(f.Nam)
+	if err != nil {
+		return err
+	}
+	fnTyp := typ.(*types.Function)
+	if len(fnTyp.Args) != len(f.Params) {
+		return
+	}
 }

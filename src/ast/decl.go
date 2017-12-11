@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"ast/statement"
-	"types"
 )
 
 type Decl interface {
@@ -52,13 +51,4 @@ func (f *FnDecl) String() string {
 		stmtStr = append(stmtStr, stmt.String())
 	}
 	return fmt.Sprintf("Fn[%s](%s)->%v{%s}", f.Nam, strings.Join(argsStr, ","), f.Return, strings.Join(stmtStr, ","))
-}
-
-type TypeDecl struct {
-	Nam string
-	Typ types.Type
-}
-
-func (t *TypeDecl) Name() string {
-	return t.Nam
 }

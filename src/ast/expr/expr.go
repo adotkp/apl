@@ -10,13 +10,13 @@ type Expr interface {
 }
 
 type Value struct {
-	Text string
+	V values.Value
 }
 
 func (v *Value) Eval() (values.Value, error) {
-	return nil, nil
+	return v.V, nil
 }
 
 func (v *Value) String() string {
-	return v.Text
+	return v.V.String()
 }

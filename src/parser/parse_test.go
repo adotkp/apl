@@ -7,6 +7,7 @@ import (
 	"ast"
 	"ast/expr"
 	"ast/statement"
+	"values"
 )
 
 func fileEqual(f1, f2 *ast.File) bool {
@@ -51,7 +52,7 @@ func hello(int i, string x) bool {
 							},
 							&statement.Return{
 								Expr: &expr.Value{
-									Text: "false",
+									V: &values.Bool{V: false},
 								},
 							},
 						},
