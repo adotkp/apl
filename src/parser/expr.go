@@ -19,6 +19,7 @@ func (p *P) parseExpr() (expr.Expr, error) {
 		return nil, err
 	}
 	return &expr.Value{
-		V: value,
+		Source: TokenSource{tok},
+		V:      value,
 	}, nil
 }

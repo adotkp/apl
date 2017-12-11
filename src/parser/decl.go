@@ -36,7 +36,7 @@ func (p *P) parseDecl() (ast.Decl, error) {
 }
 
 func (p *P) parseFnDecl() (ast.Decl, error) {
-	_, _, err := p.consume(TokenFunc)
+	_, tok, err := p.consume(TokenFunc)
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +65,7 @@ func (p *P) parseFnDecl() (ast.Decl, error) {
 		return nil, err
 	}
 	return &ast.FnDecl{
+		Source:     TokenSource{tok},
 		Nam:        name,
 		Args:       args,
 		Return:     returnType,
@@ -91,8 +92,9 @@ func (p *P) parseFnArgs() ([]*ast.FnArg, error) {
 			return nil, err
 		}
 		args = append(args, &ast.FnArg{
-			Nam: name,
-			Typ: typ,
+			Source: TokenSource{tok},
+			Nam:    name,
+			Typ:    typ,
 		})
 		_, tok, err = p.consume(TokenComma)
 		if tok.Typ == TokenParensClose {
@@ -114,5 +116,5 @@ func (p *P) parseFnReturn() (*ast.FnReturn, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ast.FnReturn{Typ: typ}, nil
+	return &ast.FnReturn{Source: TokenSource{tok}, Typ: typ}, nil
 }

@@ -19,7 +19,7 @@ func (p *P) parseImports() ([]*statement.Import, error) {
 }
 
 func (p *P) parseImport() (*statement.Import, error) {
-	mismatch, _, err := p.consume(TokenImport)
+	mismatch, tok, err := p.consume(TokenImport)
 	if err != nil {
 		if mismatch {
 			p.tokens.unread()
@@ -36,6 +36,7 @@ func (p *P) parseImport() (*statement.Import, error) {
 		return nil, err
 	}
 	return &statement.Import{
-		Name: name,
+		Source: TokenSource{tok},
+		Name:   name,
 	}, nil
 }

@@ -33,26 +33,68 @@ func hello(int i, string x) bool {
 }
 `,
 			output: &ast.File{
+				Source: TokenSource{
+					Token{Line: 1, LinePos: 0, Pos: 1, File: "test.apl"},
+				},
 				Imports: []*statement.Import{
-					{Name: "foo"},
-					{Name: "bar"},
+					{
+						Name: "foo",
+						Source: TokenSource{
+							Token{Line: 1, LinePos: 0, Pos: 1, File: "test.apl"},
+						},
+					},
+					{
+						Name: "bar",
+						Source: TokenSource{
+							Token{Line: 2, LinePos: 0, Pos: 13, File: "test.apl"},
+						},
+					},
 				},
 				Decls: []ast.Decl{
 					&ast.FnDecl{
 						Nam: "hello",
-						Args: []*ast.FnArg{
-							{Typ: "int", Nam: "i"},
-							{Typ: "string", Nam: "x"},
+						Source: TokenSource{
+							Token{Line: 4, LinePos: 0, Pos: 26, File: "test.apl"},
 						},
-						Return: &ast.FnReturn{Typ: "bool"},
+						Args: []*ast.FnArg{
+							{
+								Typ: "int",
+								Nam: "i",
+								Source: TokenSource{
+									Token{Line: 4, LinePos: 11, Pos: 37, File: "test.apl"},
+								},
+							},
+							{
+								Typ: "string",
+								Nam: "x",
+								Source: TokenSource{
+									Token{Line: 4, LinePos: 18, Pos: 44, File: "test.apl"},
+								},
+							},
+						},
+						Return: &ast.FnReturn{
+							Typ: "bool",
+							Source: TokenSource{
+								Token{Line: 4, LinePos: 28, Pos: 54, File: "test.apl"},
+							},
+						},
 						Statements: []statement.Statement{
 							&statement.FnCall{
 								Nam:    "do",
 								Params: nil,
+								Source: TokenSource{
+									Token{Line: 5, LinePos: 2, Pos: 63, File: "test.apl"},
+								},
 							},
 							&statement.Return{
+								Source: TokenSource{
+									Token{Line: 6, LinePos: 2, Pos: 71, File: "test.apl"},
+								},
 								Expr: &expr.Value{
 									V: &values.Bool{V: false},
+									Source: TokenSource{
+										Token{Line: 6, LinePos: 9, Pos: 78, File: "test.apl"},
+									},
 								},
 							},
 						},
@@ -81,7 +123,7 @@ func hello(int i, string x) bool {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			l := NewLexer(strings.NewReader(tc.input))
+			l := NewLexer("test.apl", strings.NewReader(tc.input))
 			p := NewParser(l.Tokens())
 			file, err := p.Do()
 			if err != nil {
@@ -93,7 +135,7 @@ func hello(int i, string x) bool {
 				}
 			} else {
 				if !fileEqual(tc.output, file) {
-					t.Errorf("expected %q, got %q", tc.output, file)
+					t.Errorf("expected\n%q\n\ngot\n%q", tc.output, file)
 				}
 			}
 		})

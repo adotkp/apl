@@ -69,28 +69,35 @@ func init() {
 }
 
 type Token struct {
-	Typ       TokenType
-	Lit       []rune
-	Pos       int
-	Err       error
-	IsKeyword bool
+	Typ     TokenType
+	Lit     []rune
+	Err     error
+	File    string
+	Pos     int
+	Line    int
+	LinePos int
 }
 
 func (t Token) String() string {
 	if t.Typ == TokenError {
 		return fmt.Sprintf("TokenError(%s)", t.Err)
 	}
-	return fmt.Sprintf("Token(%v,%d,%s,@%d)", t.Typ, TokenError, string(t.Lit), t.Pos)
+	return fmt.Sprintf("Token(%v,%s,@%d:%d:%d)", t.Typ, string(t.Lit), t.Line+1, t.LinePos+1, t.Pos)
 }
 
 type Lexer struct {
-	scanner io.RuneScanner
-	pos     int
+	fileName    string
+	scanner     io.RuneScanner
+	pos         int
+	line        int
+	linePos     int
+	prevLinePos int
 }
 
-func NewLexer(scanner io.RuneScanner) *Lexer {
+func NewLexer(fileName string, scanner io.RuneScanner) *Lexer {
 	return &Lexer{
-		scanner: scanner,
+		fileName: fileName,
+		scanner:  scanner,
 	}
 }
 
@@ -119,15 +126,29 @@ func (l *Lexer) read() (rune, error) {
 		return r, err
 	}
 	l.pos++
+	l.prevLinePos = l.linePos
+	if r == '\n' {
+		l.line++
+		l.linePos = 0
+	} else {
+		l.linePos++
+	}
 	return r, nil
 }
 
 func (l *Lexer) unread() error {
+	if l.linePos == l.prevLinePos {
+		panic("cannot unread twice")
+	}
 	err := l.scanner.UnreadRune()
 	if err != nil {
 		return err
 	}
+	if l.linePos == 0 {
+		l.line--
+	}
 	l.pos--
+	l.linePos = l.prevLinePos
 	return nil
 }
 
@@ -149,8 +170,13 @@ func (l *Lexer) nextIgnoreSpace() Token {
 		return l.err(err)
 	}
 	pos := l.pos
+	line := l.line
+	linePos := l.linePos
 	t := l.next()
 	t.Pos = pos
+	t.Line = line
+	t.LinePos = linePos
+	t.File = l.fileName
 	if t.Typ == TokenString {
 		t.Pos++
 	}
@@ -227,7 +253,6 @@ func (l *Lexer) emitAlphaNum() Token {
 	}
 	if typ, ok := keywords[string(t.Lit)]; ok {
 		t.Typ = typ
-		t.IsKeyword = true
 	} else {
 		t.Typ = TokenText
 	}

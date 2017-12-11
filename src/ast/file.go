@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"ast/source"
 	"ast/statement"
 )
 
 type File struct {
+	source.Source
 	Imports []*statement.Import
 	Decls   []Decl
 }
@@ -21,9 +23,14 @@ func (f *File) String() string {
 	for _, decl := range f.Decls {
 		declStrs = append(declStrs, decl.String())
 	}
-	return fmt.Sprintf("Imports(%s) Decls(%s)", strings.Join(importStrs, ","), strings.Join(declStrs, ","))
+	return fmt.Sprintf(
+		"File(%s) Imports(%s) Decls(%s)",
+		source.SourceString(f.Source),
+		strings.Join(importStrs, ","),
+		strings.Join(declStrs, ","))
 }
 
+/*
 func (f *File) TypeCheck() error {
 	for _, imp := range f.imports {
 		if err := imp.TypeCheck(); err != nil {
@@ -36,3 +43,4 @@ func (f *File) TypeCheck() error {
 		}
 	}
 }
+*/

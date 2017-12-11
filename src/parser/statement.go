@@ -41,7 +41,7 @@ func (p *P) parseStatement() (statement.Statement, error) {
 	}
 	p.tokens.unread()
 	if next.Typ == TokenParensOpen {
-		return p.parseFnCall(string(tok.Lit))
+		return p.parseFnCall(string(tok.Lit), TokenSource{tok})
 	}
 	if next.Typ == TokenAssign {
 		panic("assignment not yet implemented")
@@ -50,7 +50,7 @@ func (p *P) parseStatement() (statement.Statement, error) {
 }
 
 func (p *P) parseReturnStmt() (*statement.Return, error) {
-	_, _, err := p.consume(TokenReturn)
+	_, tok, err := p.consume(TokenReturn)
 	if err != nil {
 		return nil, err
 	}
@@ -63,11 +63,12 @@ func (p *P) parseReturnStmt() (*statement.Return, error) {
 		return nil, err
 	}
 	return &statement.Return{
-		Expr: expr,
+		Source: TokenSource{tok},
+		Expr:   expr,
 	}, nil
 }
 
-func (p *P) parseFnCall(name string) (*statement.FnCall, error) {
+func (p *P) parseFnCall(name string, src TokenSource) (*statement.FnCall, error) {
 	_, _, err := p.consume(TokenParensOpen)
 	if err != nil {
 		return nil, err
@@ -92,6 +93,7 @@ func (p *P) parseFnCall(name string) (*statement.FnCall, error) {
 		return nil, err
 	}
 	return &statement.FnCall{
+		Source: src,
 		Nam:    name,
 		Params: params,
 	}, nil

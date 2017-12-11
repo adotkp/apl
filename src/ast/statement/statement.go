@@ -4,14 +4,17 @@ import (
 	"fmt"
 
 	"ast/expr"
+	"ast/source"
 )
 
 type Statement interface {
-	TypeCheck() error
+	// TypeCheck() error
+	source.Source
 	String() string
 }
 
 type Import struct {
+	source.Source
 	Name string
 }
 
@@ -20,10 +23,11 @@ func (i *Import) TypeCheck() error {
 }
 
 func (i *Import) String() string {
-	return "import " + i.Name
+	return fmt.Sprintf("import(%s) %s", source.SourceString(i.Source), i.Name)
 }
 
 type Return struct {
+	source.Source
 	Expr expr.Expr
 }
 
@@ -32,10 +36,11 @@ func (r *Return) Exec() error {
 }
 
 func (r *Return) String() string {
-	return fmt.Sprintf("return %v", r.Expr)
+	return fmt.Sprintf("return(%s) %v", source.SourceString(r.Source), r.Expr)
 }
 
 type FnCall struct {
+	source.Source
 	Nam    string
 	Params []expr.Expr
 }
@@ -45,9 +50,10 @@ func (f *FnCall) Exec() error {
 }
 
 func (f *FnCall) String() string {
-	return fmt.Sprintf("FnCall(%s:%v)", f.Nam, f.Params)
+	return fmt.Sprintf("FnCall(%s:%s:%v)", source.SourceString(f.Source), f.Nam, f.Params)
 }
 
+/*
 func (f *FnCall) TypeCheck(ctx types.Context) error {
 	typ, err := ctx.Get(f.Nam)
 	if err != nil {
@@ -58,3 +64,4 @@ func (f *FnCall) TypeCheck(ctx types.Context) error {
 		return
 	}
 }
+*/

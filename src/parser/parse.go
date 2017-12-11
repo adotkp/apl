@@ -51,6 +51,11 @@ func NewParser(tokens <-chan Token) *P {
 }
 
 func (p *P) Do() (*ast.File, error) {
+	tok, err := p.tokens.get()
+	if err != nil {
+		return nil, err
+	}
+	p.tokens.unread()
 	imports, err := p.parseImports()
 	if err != nil {
 		return nil, err
@@ -60,6 +65,7 @@ func (p *P) Do() (*ast.File, error) {
 		return nil, err
 	}
 	return &ast.File{
+		Source:  TokenSource{tok},
 		Imports: imports,
 		Decls:   decls,
 	}, nil
@@ -91,4 +97,24 @@ func (p *P) consumeText() (string, Token, error) {
 		return "", tok, p.errf(tok, "expected %v, got %v", TokenText, tok.Typ)
 	}
 	return string(tok.Lit), tok, nil
+}
+
+type TokenSource struct {
+	Token
+}
+
+func (t TokenSource) Pos() int {
+	return t.Token.Pos
+}
+
+func (t TokenSource) Line() int {
+	return t.Token.Line
+}
+
+func (t TokenSource) LinePos() int {
+	return t.Token.LinePos
+}
+
+func (t TokenSource) File() string {
+	return t.Token.File
 }
