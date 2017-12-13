@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	errEof = errors.New("unexpected eof")
+	errEOF = errors.New("unexpected eof")
 )
 
 type gettoken struct {
@@ -24,7 +24,7 @@ func (gt *gettoken) get() (Token, error) {
 	}
 	ret, isOpen := <-gt.tokens
 	if !isOpen {
-		return ret, errEof
+		return ret, errEOF
 	}
 	if ret.Err != nil {
 		return ret, ret.Err
@@ -40,16 +40,20 @@ func (gt *gettoken) unread() {
 	gt.undo = true
 }
 
+// P is the parser that converts a token stream to the AST.
 type P struct {
 	tokens *gettoken
 }
 
+// NewParser returns a new P.
 func NewParser(tokens <-chan Token) *P {
 	return &P{
 		tokens: &gettoken{tokens, Token{}, false},
 	}
 }
 
+// Do parses the token stream and returns the AST, or an error if parsing error
+// occurred.
 func (p *P) Do() (*ast.File, error) {
 	tok, err := p.tokens.get()
 	if err != nil {
@@ -99,22 +103,27 @@ func (p *P) consumeText() (string, Token, error) {
 	return string(tok.Lit), tok, nil
 }
 
+// TokenSource implements Source from the ast/source package from the Token.
 type TokenSource struct {
 	Token
 }
 
+// Pos returns the absolute rune-offset (0-indexed).
 func (t TokenSource) Pos() int {
 	return t.Token.Pos
 }
 
+// Line returns the line number (0-indexed).
 func (t TokenSource) Line() int {
 	return t.Token.Line
 }
 
+// LinePos returns the rune-offset within the line (0-indexed).
 func (t TokenSource) LinePos() int {
 	return t.Token.LinePos
 }
 
+// File returns the name of the source file.
 func (t TokenSource) File() string {
 	return t.Token.File
 }

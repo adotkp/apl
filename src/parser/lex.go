@@ -7,9 +7,11 @@ import (
 	"unicode"
 )
 
+// TokenType enumerates the types of tokens emitted by the lexer.
 type TokenType int64
 
 const (
+	// TokenError is an error that occurs while lexing.
 	TokenError TokenType = 1 << iota
 	TokenBraceOpen
 	TokenBraceClose
@@ -68,6 +70,8 @@ func init() {
 	}
 }
 
+// Token is a rune slice with an associated type and positional information
+// from the original source file.
 type Token struct {
 	Typ     TokenType
 	Lit     []rune
@@ -85,6 +89,7 @@ func (t Token) String() string {
 	return fmt.Sprintf("Token(%v,%s,@%d:%d:%d)", t.Typ, string(t.Lit), t.Line+1, t.LinePos+1, t.Pos)
 }
 
+// Lexer converts a rune stream to a token stream.
 type Lexer struct {
 	fileName    string
 	scanner     io.RuneScanner
@@ -94,6 +99,7 @@ type Lexer struct {
 	prevLinePos int
 }
 
+// NewLexer returns a new Lexer.
 func NewLexer(fileName string, scanner io.RuneScanner) *Lexer {
 	return &Lexer{
 		fileName: fileName,
@@ -101,6 +107,9 @@ func NewLexer(fileName string, scanner io.RuneScanner) *Lexer {
 	}
 }
 
+// Tokens returns a stream of tokens. The channel is closed when the input byte
+// stream is fully consumed or if an error is encountered while lexing. If an
+// error occurs, the final token will be of type TokenError.
 func (l *Lexer) Tokens() <-chan Token {
 	tokens := make(chan Token)
 	go func() {

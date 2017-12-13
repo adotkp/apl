@@ -8,6 +8,8 @@ import (
 	"ast/statement"
 )
 
+// File is the root of the AST. It represents the result of parsing a single
+// source file.
 type File struct {
 	source.Source
 	Imports []*statement.Import
@@ -25,22 +27,7 @@ func (f *File) String() string {
 	}
 	return fmt.Sprintf(
 		"File(%s) Imports(%s) Decls(%s)",
-		source.SourceString(f.Source),
+		source.String(f.Source),
 		strings.Join(importStrs, ","),
 		strings.Join(declStrs, ","))
 }
-
-/*
-func (f *File) TypeCheck() error {
-	for _, imp := range f.imports {
-		if err := imp.TypeCheck(); err != nil {
-			return err
-		}
-	}
-	for _, decl := range f.decls {
-		if err := decl.TypeCheck(); err != nil {
-			return err
-		}
-	}
-}
-*/

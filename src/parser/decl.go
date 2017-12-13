@@ -8,7 +8,7 @@ func (p *P) parseDecls() ([]ast.Decl, error) {
 	var decls []ast.Decl
 	for {
 		decl, err := p.parseDecl()
-		if err == errEof {
+		if err == errEOF {
 			return decls, nil
 		}
 		if err != nil {

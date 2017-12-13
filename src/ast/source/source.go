@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+// Source represents positional information of an AST node.
 type Source interface {
 	File() string
 	Pos() int
@@ -11,7 +12,8 @@ type Source interface {
 	LinePos() int
 }
 
-func SourceString(s Source) string {
+// String returns a string representation of a given Source.
+func String(s Source) string {
 	if s == nil {
 		return "nil"
 	}
