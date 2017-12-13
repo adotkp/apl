@@ -6,6 +6,7 @@ import (
 
 	"ast/source"
 	"ast/statement"
+	"types"
 )
 
 // File is the root of the AST. It represents the result of parsing a single
@@ -30,4 +31,19 @@ func (f *File) String() string {
 		source.String(f.Source),
 		strings.Join(importStrs, ","),
 		strings.Join(declStrs, ","))
+}
+
+// Check statically validates this file.
+func (f *File) Check(c *types.Context) error {
+	for _, imp := range f.Imports {
+		if _, err := imp.Check(c); err != nil {
+			return err
+		}
+	}
+	for _, decl := range f.Decls {
+		if err := decl.Check(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }

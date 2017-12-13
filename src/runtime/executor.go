@@ -3,18 +3,22 @@ package runtime
 import (
 	"io"
 
-	"ast"
+	"parser"
+	"types"
 )
 
+// Executor loads, checks, and runs the language.
 type Executor struct {
 }
 
-func (e *Executor) TypeCheck(r io.RuneScanner) error {
-	l := parser.NewLexer(r)
+// Check statically type-checks the source.
+func (e *Executor) Check(fileName string, r io.RuneScanner) error {
+	l := parser.NewLexer(fileName, r)
 	p := parser.NewParser(l.Tokens())
 	file, err := p.Do()
 	if err != nil {
 		return err
 	}
-	return file.TypeCheck()
+	c := types.NewContext()
+	return file.Check(c)
 }

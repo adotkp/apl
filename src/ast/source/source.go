@@ -10,6 +10,7 @@ type Source interface {
 	Pos() int
 	Line() int
 	LinePos() int
+	Errf(format string, args ...interface{}) error
 }
 
 // String returns a string representation of a given Source.

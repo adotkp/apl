@@ -127,3 +127,8 @@ func (t TokenSource) LinePos() int {
 func (t TokenSource) File() string {
 	return t.Token.File
 }
+
+// Errf formats an error with the positional information prepended.
+func (t TokenSource) Errf(format string, args ...interface{}) error {
+	return fmt.Errorf("%s:%d:%d %s", t.File(), t.Line()+1, t.LinePos()+1, fmt.Sprintf(format, args...))
+}

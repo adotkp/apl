@@ -6,6 +6,7 @@ import (
 
 	"ast/source"
 	"ast/statement"
+	"types"
 )
 
 // Decl represents a type or function declaration.
@@ -13,6 +14,7 @@ type Decl interface {
 	source.Source
 	Name() string
 	String() string
+	Check(c *types.Context) error
 }
 
 // FnArg is an argument to a function.
@@ -61,4 +63,41 @@ func (f *FnDecl) String() string {
 		stmtStr = append(stmtStr, stmt.String())
 	}
 	return fmt.Sprintf("Fn(%s)[%s](%s)->%v{%s}", source.String(f.Source), f.Nam, strings.Join(argsStr, ","), f.Return, strings.Join(stmtStr, ","))
+}
+
+// Check validates the arg and return types of the declared function, as well
+// as the statements inside the function. The declared function is registered
+// prior to checking the statements to support recursive calls.
+func (f *FnDecl) Check(c *types.Context) error {
+	var argTypes []types.Type
+	for _, arg := range f.Args {
+		typ, err := c.Get(arg.Typ)
+		if err != nil {
+			return arg.Errf(err.Error())
+		}
+		argTypes = append(argTypes, typ)
+	}
+	var retType types.Type
+	var err error
+	if f.Return != nil {
+		retType, err = c.Get(f.Return.Typ)
+		if err != nil {
+			return f.Return.Errf(err.Error())
+		}
+	}
+	// Register before evaluating statements to support recursion.
+	err = c.Add(f.Nam, &types.Func{
+		Args:   argTypes,
+		Return: retType,
+	})
+	if err != nil {
+		return f.Errf(err.Error())
+	}
+	for _, stmt := range f.Statements {
+		_, err := stmt.Check(c)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
