@@ -28,9 +28,8 @@ func NewContext() *Context {
 // Add adds the given type to the registry. Returns an error if it conflicts
 // with an existing type.
 func (c *Context) Add(name string, t Type) error {
-	t2, ok := c.m[name]
-	if ok {
-		return fmt.Errorf("type %s already declared as %v", name, t2)
+	if prev, ok := c.m[name]; ok {
+		return fmt.Errorf("type %s already declared as %v", name, prev)
 	}
 	c.m[name] = t
 	return nil
@@ -39,9 +38,8 @@ func (c *Context) Add(name string, t Type) error {
 // Get retrieves the type associated with the given name. If no type exists,
 // returns ErrTypeNotFound.
 func (c *Context) Get(name string) (Type, error) {
-	t, ok := c.m[name]
-	if !ok {
-		return nil, fmt.Errorf("unknown type: %s", name)
+	if t, ok := c.m[name]; ok {
+		return t, nil
 	}
-	return t, nil
+	return nil, fmt.Errorf("unknown type: %s", name)
 }

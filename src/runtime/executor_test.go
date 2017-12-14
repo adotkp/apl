@@ -14,8 +14,6 @@ func TestCheck(t *testing.T) {
 		{
 			name: "normal",
 			input: `
-import foo;
-
 func main(int x) {
   main(12345);
 }
@@ -89,8 +87,8 @@ func main() {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			e := &Executor{}
-			err := e.Check("test.apl", strings.NewReader(tc.input))
+			e := NewExecutor(nil)
+			_, err := e.CheckWithReader("test.apl", strings.NewReader(tc.input))
 			if tc.err == "" && err != nil {
 				t.Errorf("unexpected error: %s", err)
 			} else if tc.err != "" && err.Error() != tc.err {
