@@ -41,5 +41,5 @@ func (c *Context) Get(name string) (Type, error) {
 	if t, ok := c.m[name]; ok {
 		return t, nil
 	}
-	return nil, fmt.Errorf("unknown type: %s", name)
+	return nil, fmt.Errorf("unknown type or func: %s", name)
 }
